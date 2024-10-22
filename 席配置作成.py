@@ -29,6 +29,7 @@
 # In[23]:
 
 
+
 # 動作化環境を確認
 import sys
 
@@ -41,11 +42,14 @@ print(sys.version_info)
 # ### 以下の環境で作成
 # 
 # Python version
-# 
+# 
+
 # 3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)
-# ]
+# ]
+
 # Version inf
-# o.
+# o.
+
 # sys.version_info(major=3, minor=12, micro=7, releaselevel='final', serial=0)
 
 # In[43]:
