@@ -26,7 +26,7 @@
 # 
 # ・スプシはプルダウンを使ってもらって入力を制限
 
-# In[23]:
+# In[1]:
 
 
 # 動作化環境を確認
@@ -41,17 +41,14 @@ print(sys.version_info)
 # ### 以下の環境で作成
 # 
 # Python version
-# 
-
+# 
 # 3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)
-# ]
-
+# ]
 # Version inf
-# o.
-
+# o.
 # sys.version_info(major=3, minor=12, micro=7, releaselevel='final', serial=0)
 
-# In[43]:
+# In[2]:
 
 
 # CSVデータをDL
@@ -64,7 +61,7 @@ print(df.head())
 print(df.info())
 
 
-# In[44]:
+# In[12]:
 
 
 # 最初に変数を設定
@@ -93,6 +90,8 @@ elif(Venue == 'j'):
   MNmembers = 8
   MNgroups = 8
 
+PhyGroups = ['A','B','C','D','E','F','G','H','I','J'] # 対面グループ参照用テーブル。対面参加：physically present
+
 # 対面とオンラインのそれぞれの出席者をカウント　←　必要無いかも？
 # T：対面　O：オンライン
 # print(len(df.query('attendanceFormat == "対面" ')))
@@ -102,7 +101,7 @@ sumO=len(df.query('attendanceFormat == "Zoom" '))
 # 36 16
 
 
-# In[26]:
+# In[ ]:
 
 
 df
@@ -133,62 +132,50 @@ df.loc[condition, 'random_number'] = df_filtered.index
 # print(df)
 
 
-# In[55]:
+# In[22]:
+
+
+# 所属している期のリストを作成。ファシリをする期優先的に配置するので先頭に移動させる。
+CohortList = list(range(OldestCohort,YoungestCohort+1))
+CohortList.insert(0,CohortList.pop(CohortList.index(Faci)))
+
+
+# In[26]:
 
 
 cnt = 0
-df['seat'] = 0 # 結果を格納用の列を追加
+df['seat'] = None # 結果を格納用の列を追加
 
 # ファシリの期の人をランダムにシャッフルして、班の数以内で通し番号を振る。番号を振った後でmodで最大班数以下にする。
-condition = (df['cohort'] == Faci) & (df['attendanceFormat'] == "対面")
-# print(condition)
-df_filtered = df[condition]
-print(df_filtered)
-random_indices = np.arange(1, len(df_filtered) + 1)  # 1から始まる連番を生成
-cnt = max(random_indices)
-print(random_indices)
-print(cnt)
-# modを入れる
-np.random.shuffle(random_indices)  # ランダムにシャッフル
-df_filtered.index = random_indices
+for Cohort in CohortList:
+ condition = (df['cohort'] == Cohort) & (df['attendanceFormat'] == "対面")
+ # print(condition)
+ df_filtered = df[condition]
+ # print(df_filtered)
+ random_indices = np.arange(cnt, cnt + len(df_filtered))  # 1から始まる連番を生成
+ cnt = max(random_indices) % MNgroups
+ # print(random_indices)
+ # print(cnt)
+ # modを入れる
+ np.random.shuffle(random_indices)  # ランダムにシャッフル
+ df_filtered.index = random_indices
 
-# 元のデータフレームに反映
-df.loc[condition, 'seat'] = df_filtered.index
-print(df)
+ # 元のデータフレームに反映
+ df.loc[condition, 'seat'] = df_filtered.index
+ # print(df)
+df['seat'] = df['seat'] % MNgroups
+
+df.sort_values('seat')
 
 
 # In[27]:
 
 
-cnt = 0
-df['seat'] = 0 # 結果を格納用の列を追加
-
 # ファシリの期の人をランダムにシャッフルして、班の数以内で通し番号を振る。番号を振った後でmodで最大班数以下にする。
-df.loc[(df['cohort'] == Faci) & (df['attendanceFormat'] == "対面"), 'seat'] = range(1, len(df.loc[(df['cohort'] == Faci) & (df['attendanceFormat'] == "対面")]) + 1)
-df
+# df.loc[(df['cohort'] == Faci) & (df['attendanceFormat'] == "対面"), 'seat'] = range(1, len(df.loc[(df['cohort'] == Faci) & (df['attendanceFormat'] == "対面")]) + 1)
+# df
 
 # 継続は、ファシリ+1期から順に、期ごとにシャッフルして通し番号を振る。（前の期の番号をグローバル変数で管理しておくと偏りが出ないかも）
-
-
-# ### 条件に乱数割り当てのテスト
-
-# In[19]:
-
-
-# 条件を満たす行を抽出（ここでは'A'が条件）
-condition = df['column1'] == 'A'
-print(condition)
-
-# 条件を満たす行の数
-num_rows = condition.sum()
-
-# 1からnum_rowsまでの乱数を生成
-random_numbers = np.random.randint(1, num_rows + 1, size=num_rows)
-print(random_numbers)
-
-# 抽出した行に乱数を割り当てる
-df.loc[condition, 'random_column'] = random_numbers
-df
 
 
 # ### 議事録担当の配置は後で実装
